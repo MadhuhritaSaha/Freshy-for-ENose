@@ -23,7 +23,8 @@ Post-harvest spoilage of onions (*Allium cepa* L.) is a major food-security and 
 
 ## 🏗️ System Architecture
 
-![Labeled system diagram](hardware/images/Hardware_E-NOSE.png)
+![Labeled system diagram](DOCS/Hardware_E-NOSE.png)
+<!-- 👆 image loads from DOCS/ — if your file has a different name there, update this one path -->
 
 Two custom-fabricated 5 mm cast-acrylic (PMMA) chambers connected by 4 mm PTFE tubing, a Kaomer HDVP1-B12 vacuum pump (1,000 mL/min) and a manual 2-way ball valve:
 
@@ -35,9 +36,7 @@ Two custom-fabricated 5 mm cast-acrylic (PMMA) chambers connected by 4 mm PTFE t
 | **Controller** | ESP32 (dual-core 240 MHz, 12-bit ADC 0–4095 counts, 802.11 b/g/n AP, SPIFFS flash storage) |
 | **Local display** | SSD1306 128×64 OLED on I²C (SDA 21 / SCL 22) — live state without a browser |
 
-📐 3D models: [`3D/sample_chamber_3D.pdf`](3D/sample_chamber_3D.pdf) · [`3D/sensor_chamber_3D.pdf`](3D/sensor_chamber_3D.pdf)
-🔌 PCB schematic (EasyEDA V1.0): [`hardware/schematic/Schematic 2.pdf`](hardware/schematic/Schematic%202.pdf)
-🔁 Full measurement workflow: [`hardware/workflow/Workflow2.drawio.pdf`](hardware/workflow/Workflow2.drawio.pdf)
+📂 **All engineering documents live in [`DOCS/`](DOCS/)** — full lab report, EasyEDA PCB schematic (V1.0), drawio operation workflow, sample & sensor chamber 3D models, hardware photos, report drafts, and ML notes.
 
 ### GPIO map
 
@@ -51,22 +50,6 @@ Two custom-fabricated 5 mm cast-acrylic (PMMA) chambers connected by 4 mm PTFE t
 | DHT11 (1-wire) | GPIO 4 |
 | SSD1306 OLED | I²C SDA 21 · SCL 22 |
 | Vacuum pump (LEDC PWM) | GPIO 25 |
-
-### Bill of materials — ₹5,960 (~$72)
-
-| Component | Cost (₹) |
-|---|---|
-| ESP32 dev board (38-pin) | 450 |
-| MQ-135 + MQ-137 modules | 350 |
-| TGS2600 + TGS2602 + TGS2620 (Figaro) | 2,100 |
-| DHT11 | 80 |
-| SSD1306 OLED (I²C) | 200 |
-| Kaomer HDVP1-B12 vacuum pump | 1,200 |
-| 2-way ball valve + PTFE tubing (2 m) | 280 |
-| 5 mm cast acrylic sheets (2 × A3) | 500 |
-| PCB, connectors, passives | 800 |
-
-For comparison: prior published MOS E-noses ≈ ₹25,000 ($300); commercial instruments ₹5–50 lakh.
 
 ---
 
@@ -109,7 +92,7 @@ PCA note: PC1+PC2+PC3 capture 76.3% of variance with visible inter-class overlap
 
 The tree splits exclusively on **MQ137_mean, MQ135_std, MQ135_peak, MQ135_slope, MQ137_peak** — the three TGS channels contribute no splits (documented limitation).
 
-**Model-as-data deployment:** `ml/treeToJSON.m` serialises a MATLAB `ClassificationTree` into a 15-node JSON array → `POST /update-model` → ESP32 persists to SPIFFS and reloads instantly. Retraining never requires reflashing. Fallback model is compiled in for safety.
+**Model-as-data deployment:** `ML/treeToJSON.m` serialises a MATLAB `ClassificationTree` into a 15-node JSON array → `POST /update-model` → ESP32 persists to SPIFFS and reloads instantly. Retraining never requires reflashing. Fallback model is compiled in for safety.
 
 ---
 
@@ -124,31 +107,42 @@ The tree splits exclusively on **MQ137_mean, MQ135_std, MQ135_peak, MQ135_slope,
 ## 📁 Repository Structure
 
 ```
-e-nose-onion-freshness/
-├── README.md                        ← you are here
-├── LICENSE
-├── Lab_Report.pdf                   ← full internship report (34 pp, refs)
-├── 3D/                              ← chamber CAD / 3D models
-│   ├── sample_chamber_3D.pdf
-│   └── sensor_chamber_3D.pdf
-├── hardware/
-│   ├── schematic/Schematic 2.pdf    ← EasyEDA PCB schematic V1.0
-│   ├── workflow/Workflow2.drawio.pdf← operation workflow (drawio)
-│   └── images/                      ← labeled diagram, prototype photos
-├── datasets/                        ← 60 runs × 600 samples CSV logs (+ data dictionary)
-├── ml/                              ← MATLAB pipeline: features, PCA/RF, tree, treeToJSON.m, model.json
-│   └── ML2 pt1.pdf                  ← ML notes
-├── firmware/                        ← ESP32 sketch (AP, web server, 10 Hz acq, inference, /update-model)
-├── figures/                         ← PCA, ROC, confusion matrices, radar plot, tree structure
-├── drafts/6th_draft/                ← report drafts (versioning trail)
-└── webapp/                          ← FreshNose companion app source / link
+Freshy-for-ENose/
+│
+├── README.md            ← you are here — project overview, hardware, protocol, ML results
+│
+├── ESP32Code.ino        ← complete ESP32 firmware: Wi-Fi AP (192.168.4.1) + self-hosted
+│                           dashboard, 4-stage measurement protocol (evacuate → valve →
+│                           acquire → infer), synchronised 10 Hz acquisition on 5 MOS
+│                           channels + DHT11, O(1)-memory feature extraction, JSON
+│                           decision-tree inference with flash fallback, /update-model
+│                           hot-reload endpoint, SPIFFS CSV logging, OLED status readout
+│
+├── DOCS/                ← all project documentation: full lab report (34 pp), EasyEDA
+│                           PCB schematic V1.0, drawio operation workflow, sample &
+│                           sensor chamber 3D models (PDF), annotated hardware photos,
+│                           report drafts (incl. 6th draft), ML notes (ML2 pt1)
+│
+├── ML/                  ← MATLAB analysis pipeline: feature extraction (7 stats × 5
+│                           channels → 35 features), PCA + Random Forest exploratory
+│                           benchmark, cross-validated decision-tree selection
+│                           (MaxNumSplits ∈ {3,7,15,31}), treeToJSON.m exporter,
+│                           deployed model.json
+│
+├── Web App/             ← FreshNose companion web app (Vite + React + Tailwind
+│                           configuration, built with Google AI Studio Build) —
+│                           dashboard parity + persistent inspection history (≥30
+│                           records), per-record & bulk CSV export, image-based check
+│
+└── src/                 ← FreshNose TypeScript source (components, hooks, services)
+    Live deployment ↗ https://freshnose-223067313924.asia-southeast1.run.app
 ```
 
 ---
 
 ## 🚀 Reproduce
 
-1. **Build**: fabricate chambers (dimensions above), wire per `hardware/schematic`, flash firmware.
+1. **Build**: fabricate chambers (dimensions above), wire per the EasyEDA schematic in `DOCS/`, flash `ESP32Code.ino`.
 2. **Test**: power on → join `ENOSE-XXXX` Wi-Fi → open `192.168.4.1` → Start Test → open valve when prompted → read verdict + download CSV.
 3. **Retrain**: run `ml/` MATLAB scripts on new CSVs → export with `treeToJSON.m` → `curl -X POST http://192.168.4.1/update-model --data-binary @model.json`.
 
@@ -168,5 +162,5 @@ If you use this work, cite the lab report: *Saha, M. (2026). Electronic Nose-Bas
 
 Author: **Madhuhrita Saha** · madhuhritasahahs@gmail.com · [LinkedIn](https://linkedin.com/in/madhuhrita-saha-b0b954272) · [ORCID 0009-0009-4946-8724](https://orcid.org/0009-0009-4946-8724)
 
-Built at CHCI Lab, IIT Mandi. Licensed under [MIT](LICENSE).
+Built at CHCI Lab, IIT Mandi.
 
