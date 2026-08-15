@@ -23,7 +23,7 @@ Post-harvest spoilage of onions (*Allium cepa* L.) is a major food-security and 
 
 ## 🏗️ System Architecture
 
-![Labeled system diagram](DOCS/Hardware E-NOSE.png)
+![Labeled system diagram](DOCS/Hardware-E-NOSE.png)
 <!-- 👆 image loads from DOCS/ — if your file has a different name there, update this one path -->
 
 Two custom-fabricated 5 mm cast-acrylic (PMMA) chambers connected by 4 mm PTFE tubing, a Kaomer HDVP1-B12 vacuum pump (1,000 mL/min) and a manual 2-way ball valve:
