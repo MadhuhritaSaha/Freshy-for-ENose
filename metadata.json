@@ -1,6 +1,0 @@
-{
-  "name": "FreshNose",
-  "description": "Official inspection-archive companion to the ESP32 Electronic Nose from CHCI Lab, IIT Mandi for Onion and Milk freshness verification.",
-  "requestFramePermissions": ["camera"],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
